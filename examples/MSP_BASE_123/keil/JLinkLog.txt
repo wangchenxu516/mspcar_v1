@@ -1,0 +1,217 @@
+TA1CC 000:217.566   SEGGER J-Link V9.56 Log File
+TA1CC 000:217.655   DLL Compiled: Jul  1 2026 16:46:42
+TA1CC 000:217.667   Logging started @ 2026-07-10 16:18
+TA1CC 000:217.678   Process: D:\k5\UV4\UV4.exe
+TA1CC 000:217.694 - 217.689ms 
+TA1CC 000:217.712 JLINK_SetWarnOutHandler(...)
+TA1CC 000:217.724 - 0.012ms 
+TA1CC 000:217.736 JLINK_OpenEx(...)
+TA1CC 000:224.531   Firmware: J-Link ARM-OB STM32 compiled Aug 22 2012 19:52:04
+TA1CC 000:225.028   Firmware: J-Link ARM-OB STM32 compiled Aug 22 2012 19:52:04
+TA1CC 000:226.418   Hardware: V7.00
+TA1CC 000:226.441   S/N: 20090928
+TA1CC 000:226.457   OEM: SEGGER
+TA1CC 000:226.474   Feature(s): RDI,FlashDL,FlashBP,JFlash,GDB
+TA1CC 000:226.690   Bootloader: (FW returned invalid version)
+TA1CC 000:227.336   TELNET listener socket opened on port 19021
+TA1CC 000:227.395   WEBSRV WEBSRV_Init(): Starting webserver thread(s)
+TA1CC 000:227.486   WEBSRV Failed to put socket into listener state (port 19080)
+TA1CC 000:227.538   WEBSRV Webserver running on local port 19081
+TA1CC 000:227.634   Looking for J-Link GUI Server exe at: D:\k5\ARM\Segger\JLinkGUIServer.exe
+TA1CC 000:227.651   Forking J-Link GUI Server: D:\k5\ARM\Segger\JLinkGUIServer.exe
+TA1CC 000:229.942   J-Link GUI Server info: "J-Link GUI server V9.56 "
+TA1CC 000:230.299 - 12.557ms returns "O.K."
+TA1CC 000:230.322 JLINK_GetEmuCaps()
+TA1CC 000:230.336 - 0.012ms returns 0x88EA5833
+TA1CC 000:230.362 JLINK_TIF_GetAvailable(...)
+TA1CC 000:230.495 - 0.133ms 
+TA1CC 000:230.509 JLINK_SetErrorOutHandler(...)
+TA1CC 000:230.523 - 0.014ms 
+TA1CC 000:230.552 JLINK_ExecCommand("ProjectFile = "C:\Users\gr\Desktop\2026\example\25E\04_MSPM0G3507\examples\MSP_BASE_123\keil\JLinkSettings.ini"", ...). 
+TA1CC 000:240.984   Ref file found at: D:\k5\ARM\Segger\JLinkDevices.ref
+TA1CC 000:241.077   REF file references invalid XML file: C:\Program Files\SEGGER\JLink_V956\JLinkDevices.xml
+TA1CC 000:241.281   Device "CORTEX-M0+" selected.
+TA1CC 000:241.527 - 10.978ms returns 0x00
+TA1CC 000:241.549 JLINK_ExecCommand("Device = MSPM0G3507", ...). 
+TA1CC 000:241.781   Device "MSPM0G3507" selected.
+TA1CC 000:241.952 - 0.403ms returns 0x00
+TA1CC 000:241.972   ERROR: Unknown command
+TA1CC 000:241.991 JLINK_GetHardwareVersion()
+TA1CC 000:242.003 - 0.011ms returns 70000
+TA1CC 000:242.016 JLINK_GetDLLVersion()
+TA1CC 000:242.027 - 0.011ms returns 95600
+TA1CC 000:242.039 JLINK_GetOEMString(...)
+TA1CC 000:242.052 JLINK_GetFirmwareString(...)
+TA1CC 000:242.063 - 0.011ms 
+TA1CC 000:242.077 JLINK_GetDLLVersion()
+TA1CC 000:242.088 - 0.011ms returns 95600
+TA1CC 000:242.100 JLINK_GetCompileDateTime()
+TA1CC 000:242.111 - 0.011ms 
+TA1CC 000:242.124 JLINK_GetFirmwareString(...)
+TA1CC 000:242.136 - 0.011ms 
+TA1CC 000:242.148 JLINK_GetHardwareVersion()
+TA1CC 000:242.159 - 0.011ms returns 70000
+TA1CC 000:242.172 JLINK_GetSN()
+TA1CC 000:242.183 - 0.011ms returns 20090928
+TA1CC 000:242.196 JLINK_GetOEMString(...)
+TA1CC 000:242.213 JLINK_TIF_Select(JLINKARM_TIF_SWD)
+TA1CC 000:242.563 - 0.346ms returns 0x00
+TA1CC 000:242.584 JLINK_HasError()
+TA1CC 000:242.604 JLINK_SetSpeed(5000)
+TA1CC 000:242.679 - 0.076ms 
+TA1CC 000:242.895 JLINK_HasError()
+TA1CC 000:242.909 JLINK_SetResetType(JLINKARM_RESET_TYPE_NORMAL)
+TA1CC 000:242.921 - 0.011ms returns JLINKARM_RESET_TYPE_NORMAL
+TA1CC 000:242.938 JLINK_Reset()
+TA1CC 000:243.054   InitTarget() start
+TA1CC 000:243.081    J-Link Script File: Executing InitTarget()
+TA1CC 000:243.591   Error: Failed to initialize DAP.
+TA1CC 000:243.686   Could not connect to MSPM0 device.
+For debugger connection the device needs a mass erase.
+Note: This will erase the entire device and user data.
+TA1CC 000:243.700   Executing default behavior previously saved in the registry.
+TA1CC 000:243.718   Device will be unsecured now.
+TA1CC 000:243.736   Can not attach to CPU. Performing mass erase
+TA1CC 000:280.651   Could not send mass erase command
+TA1CC 000:280.680   Mass erase failed.
+TA1CC 000:280.760   Could not connect to MSPM0 device.
+For debugger connection the device needs a factory reset.
+Note: This will erase the entire device and user data and reset the NONMAIN section to factory defaults.
+TA1CC 000:280.802   Executing default behavior previously saved in the registry.
+TA1CC 000:280.822   Device will be unsecured now.
+TA1CC 000:280.841   Can not attach to CPU. Performing factory reset
+TA1CC 000:317.531   Could not send factory reset command
+TA1CC 000:317.553   Factory reset failed.
+TA1CC 000:317.572   
+  ***** Error: 
+TA1CC 000:317.588   J-Link script file function InitTarget() returned with error code -1
+TA1CC 000:317.606   InitTarget() end - Took 74.4ms
+TA1CC 000:317.632   Connect failed. Resetting via Reset pin and trying again.
+TA1CC 000:379.450   InitTarget() start
+TA1CC 000:379.484    J-Link Script File: Executing InitTarget()
+TA1CC 000:380.063   Error: Failed to initialize DAP.
+TA1CC 000:380.172   Could not connect to MSPM0 device.
+For debugger connection the device needs a mass erase.
+Note: This will erase the entire device and user data.
+TA1CC 000:380.189   Executing default behavior previously saved in the registry.
+TA1CC 000:380.209   Device will be unsecured now.
+TA1CC 000:380.232   Can not attach to CPU. Performing mass erase
+TA1CC 000:416.157   Could not send mass erase command
+TA1CC 000:416.187   Mass erase failed.
+TA1CC 000:416.272   Could not connect to MSPM0 device.
+For debugger connection the device needs a factory reset.
+Note: This will erase the entire device and user data and reset the NONMAIN section to factory defaults.
+TA1CC 000:416.286   Executing default behavior previously saved in the registry.
+TA1CC 000:416.306   Device will be unsecured now.
+TA1CC 000:416.326   Can not attach to CPU. Performing factory reset
+TA1CC 000:453.893   Could not send factory reset command
+TA1CC 000:453.926   Factory reset failed.
+TA1CC 000:453.945   
+  ***** Error: 
+TA1CC 000:453.961   J-Link script file function InitTarget() returned with error code -1
+TA1CC 000:453.979   InitTarget() end - Took 74.4ms
+TA1CC 000:453.997 - 211.058ms 
+TA1CC 000:454.025 JLINK_GetId()
+TA1CC 000:454.141   InitTarget() start
+TA1CC 000:454.168    J-Link Script File: Executing InitTarget()
+TA1CC 000:454.587   Error: Failed to initialize DAP.
+TA1CC 000:454.670   Could not connect to MSPM0 device.
+For debugger connection the device needs a mass erase.
+Note: This will erase the entire device and user data.
+TA1CC 000:454.683   Executing default behavior previously saved in the registry.
+TA1CC 000:454.700   Device will be unsecured now.
+TA1CC 000:454.717   Can not attach to CPU. Performing mass erase
+TA1CC 000:491.317   Could not send mass erase command
+TA1CC 000:491.344   Mass erase failed.
+TA1CC 000:491.426   Could not connect to MSPM0 device.
+For debugger connection the device needs a factory reset.
+Note: This will erase the entire device and user data and reset the NONMAIN section to factory defaults.
+TA1CC 000:491.439   Executing default behavior previously saved in the registry.
+TA1CC 000:491.455   Device will be unsecured now.
+TA1CC 000:491.472   Can not attach to CPU. Performing factory reset
+TA1CC 000:528.441   Could not send factory reset command
+TA1CC 000:528.468   Factory reset failed.
+TA1CC 000:528.487   
+  ***** Error: 
+TA1CC 000:528.504   J-Link script file function InitTarget() returned with error code -1
+TA1CC 000:528.523   InitTarget() end - Took 74.3ms
+TA1CC 000:528.541   Connect failed. Resetting via Reset pin and trying again.
+TA1CC 000:590.736   InitTarget() start
+TA1CC 000:590.779    J-Link Script File: Executing InitTarget()
+TA1CC 000:591.284   Error: Failed to initialize DAP.
+TA1CC 000:591.373   Could not connect to MSPM0 device.
+For debugger connection the device needs a mass erase.
+Note: This will erase the entire device and user data.
+TA1CC 000:591.385   Executing default behavior previously saved in the registry.
+TA1CC 000:591.401   Device will be unsecured now.
+TA1CC 000:591.417   Can not attach to CPU. Performing mass erase
+TA1CC 000:627.024   Could not send mass erase command
+TA1CC 000:627.050   Mass erase failed.
+TA1CC 000:627.138   Could not connect to MSPM0 device.
+For debugger connection the device needs a factory reset.
+Note: This will erase the entire device and user data and reset the NONMAIN section to factory defaults.
+TA1CC 000:627.151   Executing default behavior previously saved in the registry.
+TA1CC 000:627.169   Device will be unsecured now.
+TA1CC 000:627.186   Can not attach to CPU. Performing factory reset
+TA1CC 000:664.602   Could not send factory reset command
+TA1CC 000:664.630   Factory reset failed.
+TA1CC 000:664.649   
+  ***** Error: 
+TA1CC 000:664.666   J-Link script file function InitTarget() returned with error code -1
+TA1CC 000:664.684   InitTarget() end - Took 73.8ms
+TA1CC 000:664.702 - 210.676ms returns 0x00000000
+TA1CC 000:664.740 JLINK_GetId()
+TA1CC 000:664.895   InitTarget() start
+TA1CC 000:664.919    J-Link Script File: Executing InitTarget()
+TA1CC 000:665.345   Error: Failed to initialize DAP.
+TA1CC 000:665.430   Could not connect to MSPM0 device.
+For debugger connection the device needs a mass erase.
+Note: This will erase the entire device and user data.
+TA1CC 000:665.444   Executing default behavior previously saved in the registry.
+TA1CC 000:665.461   Device will be unsecured now.
+TA1CC 000:665.479   Can not attach to CPU. Performing mass erase
+TA1CC 000:704.726   Could not send mass erase command
+TA1CC 000:704.768   Mass erase failed.
+TA1CC 000:704.866   Could not connect to MSPM0 device.
+For debugger connection the device needs a factory reset.
+Note: This will erase the entire device and user data and reset the NONMAIN section to factory defaults.
+TA1CC 000:704.882   Executing default behavior previously saved in the registry.
+TA1CC 000:704.901   Device will be unsecured now.
+TA1CC 000:704.919   Can not attach to CPU. Performing factory reset
+TA1CC 000:741.716   Could not send factory reset command
+TA1CC 000:741.753   Factory reset failed.
+TA1CC 000:741.773   
+  ***** Error: 
+TA1CC 000:741.793   J-Link script file function InitTarget() returned with error code -1
+TA1CC 000:741.812   InitTarget() end - Took 76.8ms
+TA1CC 000:741.831   Connect failed. Resetting via Reset pin and trying again.
+TA1CC 000:804.020   InitTarget() start
+TA1CC 000:804.094    J-Link Script File: Executing InitTarget()
+TA1CC 000:804.665   Error: Failed to initialize DAP.
+TA1CC 000:804.752   Could not connect to MSPM0 device.
+For debugger connection the device needs a mass erase.
+Note: This will erase the entire device and user data.
+TA1CC 000:804.764   Executing default behavior previously saved in the registry.
+TA1CC 000:804.781   Device will be unsecured now.
+TA1CC 000:804.798   Can not attach to CPU. Performing mass erase
+TA1CC 000:841.458   Could not send mass erase command
+TA1CC 000:841.492   Mass erase failed.
+TA1CC 000:841.567   Could not connect to MSPM0 device.
+For debugger connection the device needs a factory reset.
+Note: This will erase the entire device and user data and reset the NONMAIN section to factory defaults.
+TA1CC 000:841.579   Executing default behavior previously saved in the registry.
+TA1CC 000:841.595   Device will be unsecured now.
+TA1CC 000:841.611   Can not attach to CPU. Performing factory reset
+TA1CC 000:879.466   Could not send factory reset command
+TA1CC 000:879.499   Factory reset failed.
+TA1CC 000:879.516   
+  ***** Error: 
+TA1CC 000:879.530   J-Link script file function InitTarget() returned with error code -1
+TA1CC 000:879.546   InitTarget() end - Took 75.4ms
+TA1CC 000:879.562 - 214.821ms returns 0x00000000
+TA1CC 000:889.189 JLINK_GetFirmwareString(...)
+TA1CC 000:889.216 - 0.027ms 
+TA1CC 001:784.874 JLINK_Close()
+TA1CC 001:786.058 - 1.183ms
+TA1CC 001:786.079   
+TA1CC 001:786.093   Closed

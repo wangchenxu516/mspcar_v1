@@ -1,0 +1,33 @@
+
+左电机  B25 E1B 
+        B24 E1A
+	    A08 PWMA
+		A24 AIN1
+		A26 AIN2
+		
+右电机	B21 E2A
+		B19 E2B
+		A09 PWMB
+		A22 BIN2
+		A14 BIN1
+		
+电机启动线 A25 STBY
+		
+		A16 OLED_SDA
+		A15 OLED_SCl
+		
+
+		A27 KEY_1
+		A17 KEY_2
+		A30 KEY_3
+		
+		A18 RED_LED				
+		
+		
+舵机接线   X轴接pb17
+          Y轴接PB18
+	  （底下第三舵机接PA12）
+
+K230 从uart2 接出来  
+      PB7 接TX
+	  PB6 接RX
