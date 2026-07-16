@@ -3,8 +3,6 @@ int cnt1,setoff;
 volatile float Count,Count1,Count2;//Count ：计数器定义，用于计数；Count1：步进电机已发出的净脉冲数
 volatile float motorPosition = 0;         
 volatile float angleError,kii,Yaw_error;
-extern int cnt_Light_mode_4,mode_4_light_voice,MOED2_Seting;
-extern int pos_data[3];
 void TIMER_0_INST_IRQHandler(void)  
 {
         switch (DL_TimerG_getPendingInterrupt(TIMER_0_INST)) {
@@ -15,9 +13,7 @@ void TIMER_0_INST_IRQHandler(void)
 		if(Count==5)
    {	   		
 		 Actual_Yaw_cal();
-	   if(MODE1_start==1)  mode_1();//mode1执行信号，按下key1会保持至一次循环结束
-       if(MODE2_start==1)  mode_2();//同上
-	   if(MODE3_start==1)  mode_3();   
+		 Task_Update();
 	   Count=0;
    } 
 //每10msHUIDU()-> HUIDU_Track()执行，直到所有内容执行完毕
