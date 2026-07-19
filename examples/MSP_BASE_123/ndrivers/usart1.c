@@ -9,12 +9,22 @@ volatile uint32_t vision_rx_byte_count = 0;
 volatile uint32_t vision_valid_frame_count = 0;
 volatile uint32_t vision_rejected_frame_count = 0;
 volatile uint8_t vision_last_byte = 0;
+volatile uint32_t hc12_tx_frame_count = 0;
 
 static uint8_t vision_rx_state = 0;
 static uint8_t vision_angle_low = 0;
 static uint8_t vision_angle_high = 0;
 
 #define VISION_ISR_BYTE_BUDGET 16U
+
+#define HC12_REPEAT_PERIOD_TICKS     10U
+#define HC12_STOP_REPEAT_COUNT       10U
+#define HC12_UART1_IBRD_4MHZ_9600    26U
+#define HC12_UART1_FBRD_4MHZ_9600     3U
+
+static volatile uint16_t hc12_send_tick = 0U;
+static volatile uint8_t hc12_send_due = 0U;
+static volatile uint8_t hc12_pending_frames = 0U;
 
 static uint16_t Vision_CommandToAngle(
     uint8_t command, uint8_t commandHigh)
@@ -193,4 +203,113 @@ void UART_3_INST_IRQHandler(void)
         default:
             break;
     }
+}
+
+static uint8_t HC12_AngleToCommand(uint16_t angle)
+{
+    switch (angle)
+    {
+        case 90U:
+            return 1U;
+        case 180U:
+            return 2U;
+        case 270U:
+            return 3U;
+        case 360U:
+            return 4U;
+        default:
+            return 0U;
+    }
+}
+
+void HC12_UART_Init(void)
+{
+    /* UART1 is independent of the K230 UART3 link. The generated project
+     * config uses 4 MHz for UART1; 26 + 3/64 gives approximately 9600 baud. */
+    NVIC_DisableIRQ(UART_1_INST_INT_IRQN);
+    DL_UART_Main_disableInterrupt(
+        UART_1_INST,
+        DL_UART_MAIN_INTERRUPT_TX | DL_UART_MAIN_INTERRUPT_RX);
+
+    DL_UART_Main_disable(UART_1_INST);
+    DL_UART_Main_setOversampling(
+        UART_1_INST, DL_UART_OVERSAMPLING_RATE_16X);
+    DL_UART_Main_setBaudRateDivisor(
+        UART_1_INST,
+        HC12_UART1_IBRD_4MHZ_9600,
+        HC12_UART1_FBRD_4MHZ_9600);
+    DL_UART_Main_enable(UART_1_INST);
+
+    hc12_send_tick = 0U;
+    hc12_send_due = 0U;
+    hc12_pending_frames = 0U;
+    hc12_tx_frame_count = 0U;
+    NVIC_ClearPendingIRQ(UART_1_INST_INT_IRQN);
+}
+
+void HC12_Tick10ms(void)
+{
+    if ((hc12_pending_frames == 0U) || (hc12_send_due != 0U))
+        return;
+
+    if (hc12_send_tick < HC12_REPEAT_PERIOD_TICKS)
+        hc12_send_tick++;
+
+    if (hc12_send_tick >= HC12_REPEAT_PERIOD_TICKS)
+    {
+        hc12_send_tick = 0U;
+        hc12_send_due = 1U;
+    }
+}
+
+void HC12_NotifyCarStopped(void)
+{
+    /* Send the final parking event immediately, then repeat it for radio
+     * reliability. The receiver must latch the first valid event. */
+    hc12_send_tick = 0U;
+    hc12_pending_frames = HC12_STOP_REPEAT_COUNT;
+    hc12_send_due = 1U;
+}
+
+void HC12_Process(void)
+{
+    uint8_t frame[6];
+    uint8_t command;
+    uint16_t angle;
+    uint8_t i;
+
+    if ((hc12_send_due == 0U) || (hc12_pending_frames == 0U))
+        return;
+
+    hc12_send_due = 0U;
+
+    angle = taskSavedTargetAngle;
+    if ((angle == 0U) && (vision_valid != 0U))
+        angle = vision_locked_angle;
+
+    command = HC12_AngleToCommand(angle);
+
+    if (command == 0U)
+    {
+        hc12_pending_frames = 0U;
+        return;
+    }
+
+    frame[0] = 0xAAU;
+    frame[1] = 0x55U;
+    frame[2] = 0x02U;
+    frame[3] = command;
+    frame[4] = 0x01U;  /* Car parked: start the gimbal. */
+    frame[5] = (uint8_t)(
+        frame[0] + frame[1] + frame[2] + frame[3] + frame[4]);
+
+    for (i = 0U; i < sizeof(frame); i++)
+        DL_UART_Main_transmitDataBlocking(UART_1_INST, frame[i]);
+
+    while (DL_UART_Main_isBusy(UART_1_INST))
+    {
+    }
+
+    hc12_tx_frame_count++;
+    hc12_pending_frames--;
 }

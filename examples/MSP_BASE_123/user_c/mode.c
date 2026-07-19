@@ -126,6 +126,7 @@ void Task_Update(void)
         else
         {
             taskState = TASK_FINISHED;
+            HC12_NotifyCarStopped();
         }
     }
 }

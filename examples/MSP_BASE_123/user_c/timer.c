@@ -14,6 +14,7 @@ void TIMER_0_INST_IRQHandler(void)
    {	   		
 		 Actual_Yaw_cal();
 		 Task_Update();
+		 HC12_Tick10ms();
 	   Count=0;
    } 
 //每10msHUIDU()-> HUIDU_Track()执行，直到所有内容执行完毕

@@ -60,6 +60,7 @@ int main(void)
      * before the relatively slow OLED and MPU6050 initialization. */
     Vision_UART_Init();
     Vision_Reset();
+    HC12_UART_Init();
 
     oled_init();
 
@@ -100,6 +101,7 @@ int main(void)
             KeyNum = 0;
         }
 
+        HC12_Process();
         Display_TaskState();
     }
 }
