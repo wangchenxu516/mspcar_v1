@@ -1,38 +1,319 @@
-# MSPM0L1306核心板例程目录
+# 循迹小车与一维云台控制系统
 
-[点击进入无名创新淘宝链接](https://namelesstech.taobao.com/)
+本项目面向“循迹小车与一维云台”训练题，实现圆形黑线循迹、K230 图案排列识别、两次按键启动、目标角度停车，以及通过 HC-12 通知独立云台顺时针转向小车。
 
-无名创新B站视频教程合集：https://www.bilibili.com/video/BV1Ei421Q7n9/
+项目由两个控制端组成：
 
-![image-20240527213330500](img/image-20240527213330500.png)
+- 小车端：MSPM0G3507，负责循迹、姿态角累计、K230 数据接收、任务状态控制和 HC-12 发送。
+- 云台端：STM32F103C8T6，负责接收停车通知，并驱动步进电机顺时针旋转至 90°、180°、270°或 360°。
 
-## [1、GPIO驱动板载灯闪烁](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/1_empty_project_led)
+> 当前循迹参数依据现有车辆的传感器排列、电机接线和圆形赛道实测得到。更换底盘、电机、轮胎、电池或灰度模块后，需要重新调整参数。
 
-## [2、软件模拟I2C驱动0.96寸OLED显示屏](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/2_soft_i2c_oled)
+## 任务流程
 
-## [3、硬件I2C驱动0.96寸OLED显示屏](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/3_hardwave_i2c_oled)
+```mermaid
+flowchart LR
+    A[上电并识别图案] --> B[第一次按下 KEY3]
+    B --> C[沿圆形黑线运行一周]
+    C --> D[起点附近停车并保存角度]
+    D --> E[第二次按下 KEY3]
+    E --> F[运行至目标角度]
+    F --> G[小车停车]
+    G --> H[HC-12发送停车通知]
+    H --> I[云台顺时针转向小车]
+```
 
-## [4、串口数据发送](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/4_uart_only_tx)
+小车端状态依次为：
 
-## [5、串口数据发送与中断回环发送](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/5_uart_tx_rx_interupt )
+```text
+WAIT_FIRST_START
+    → FIRST_RUNNING（固定运行360°）
+    → WAIT_SECOND_START
+    → SECOND_RUNNING（运行识别得到的目标角度）
+    → FINISHED（停车并通知云台）
+```
 
-## [6、定时器周期性中断](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/6_timer_period )
+K230 可以在小车启动前完成识别。小车会保存首次锁定的合法结果，第一次运行结束后等待第二次按键启动。
 
-## [7、定时器输出PWM](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/7_timer_pwm)
+## 图案与目标角度
 
-## [8、滴答定时器实现微秒、毫秒、延时、测量周期]()
+| 图案顺序 | K230命令 | 目标角度 |
+|---|---:|---:|
+| `ABCD` | `1` | 90° |
+| `DCBA` | `2` | 180° |
+| `ACBD` | `3` | 270° |
+| `CBDA` | `4` | 360° |
 
-## [9、ADC电压采集](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/9_adc_single_conversion )
+## 主要功能
 
-## [10、按键检测](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/10_keyscan)
+- 8路灰度传感器读取，黑线触发时为低电平，程序转换为逻辑值 `1`。
+- 针对圆形轨迹的分段差速控制，包括中心圆弧前馈、普通纠偏、紧急纠偏和丢线保护。
+- MPU6050 航向角累计，用于判断一圈和目标停车角度。
+- 最后30°线性减速，并保留可调的提前停车角。
+- K230 二进制串口协议解析、校验、命令到角度映射和结果锁定。
+- OLED 显示任务状态、接收字节数、最后字节、识别候选值、锁定值和已运行角度。
+- HC-12 停车通知重复发送，提高无线链路可靠性。
+- 云台端重复帧锁存，避免同一停车通知导致电机连续旋转多次。
+- 360°命令执行完整一圈，不会被当成0°。
 
-## [11、GPIO外部中断](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/11_gpio_input_inerrupt )
+## 仓库结构
 
-## [12、DAC电压输出](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/12_opa_dac8_output)
+```text
+.
+├─ examples/MSP_BASE_123/          小车端 MSPM0G3507 工程
+│  ├─ main.c                       主循环、OLED状态显示
+│  ├─ k230_vision_reliable.py      K230视觉识别与发送程序
+│  ├─ ndrivers/                    OLED、串口、传感器等驱动
+│  ├─ user_c/
+│  │  ├─ HUIDU.c                   圆形循迹控制
+│  │  ├─ mode.c                    两次启动与角度停车状态机
+│  │  └─ timer.c                   10ms周期任务
+│  ├─ user_h/                      用户头文件
+│  └─ keil/soft_i2c_oled.uvprojx  小车端 Keil 工程
+├─ 云台控制/                       云台端 STM32F103 工程
+│  ├─ Core/Src/main.c              HC-12解析与步进电机控制
+│  ├─ motor_test.ioc               STM32CubeMX配置
+│  └─ MDK-ARM/motor_test.uvprojx   云台端 Keil 工程
+├─ doc/                            原开发板资料
+└─ ReadMe.md
+```
 
-## [13、硬件SPI+硬件I2C驱动0.96寸OLED显示屏](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/13_hardwave_spi_oled)
+## 硬件与接线
 
-## [14、利用GPIO外部中断实现正交编码脉冲采集](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/14_encoder_speed_measure)
+所有串口连接都必须交叉连接 TX/RX，并保证两端共地。设备已经独立供电时，不要再连接 USB-TTL 的 `3.3V/5V`，避免电源相互回灌。
 
-## [15、利用GPIO外部中断和滴答定时器计时实现PPM信号的采集](https://gitee.com/namelesstech/lp_mspm0l1306_mini_examples/tree/master/examples/15_ppm_remote_prase)
+### K230与小车
+
+K230 使用小车端 `UART3`，波特率为 `115200`，格式为 `8-N-1`。
+
+| MSPM0G3507 | K230 |
+|---|---|
+| `PB3 / UART3_RX` | `TX` |
+| `PB2 / UART3_TX` | `RX`，只发送识别结果时可不接 |
+| `GND` | `GND` |
+
+### 小车与HC-12发送模块
+
+HC-12 使用小车端 `UART1`。生成配置中 UART1 原始值为115200，但程序会在 `HC12_UART_Init()` 中重新配置为 `9600、8-N-1`。
+
+| MSPM0G3507 | HC-12 |
+|---|---|
+| `PB6 / UART1_TX` | `RXD` |
+| `PB7 / UART1_RX` | `TXD`，当前只发送时可选 |
+| `GND` | `GND` |
+| 稳定的3.3～5V电源 | `VCC` |
+
+两个 HC-12 必须使用相同的串口波特率、无线信道和工作模式。
+
+### 云台HC-12与STM32
+
+云台端使用 `USART2`，波特率为 `9600`，格式为 `8-N-1`。
+
+| HC-12 | STM32F103C8T6 |
+|---|---|
+| `TXD` | `PA3 / USART2_RX` |
+| `RXD` | `PA2 / USART2_TX`，当前只接收时可选 |
+| `GND` | `GND` |
+| `VCC` | 稳定的3.3～5V电源 |
+
+### 云台步进电机驱动
+
+| STM32F103C8T6 | 驱动器功能 |
+|---|---|
+| `PA6 / TIM3_CH1` | `STEP/STP`脉冲 |
+| `PB0` | `DIR`方向 |
+| `PB1` | `EN`使能 |
+| `3.3V` | 驱动器公共端 `COM`，按当前硬件接法 |
+
+当前程序按42步进电机每圈200整步、驱动器16细分计算，即每圈3200个脉冲。驱动器细分设置必须与 `MOTOR_MICROSTEPS` 一致。
+
+### 其他主要引脚
+
+| 模块 | 引脚 |
+|---|---|
+| KEY3 | `PA30` |
+| OLED SCL/SDA | `PA15 / PA16` |
+| MPU6050 SCL/SDA | `PA0 / PA1` |
+| 电机PWM通道 | `PA8 / PA9` |
+| 8路灰度输入 | `PB4、PB5、PB20、PB1、PB0、PB13、PB14、PB15` |
+
+## 串口协议
+
+本项目使用两种不同的数据帧。不要将 K230→小车帧与小车→云台帧混用。
+
+### K230 → 小车
+
+```text
+AA 55 01 command 00 checksum
+```
+
+其中 `command` 为 `01～04`，`checksum = command + 00`，按8位截断。
+
+| 角度 | HEX帧 |
+|---:|---|
+| 90° | `AA 55 01 01 00 01` |
+| 180° | `AA 55 01 02 00 02` |
+| 270° | `AA 55 01 03 00 03` |
+| 360° | `AA 55 01 04 00 04` |
+
+小车端使用字节状态机解析二进制数据，不使用字符串函数，因此 `0x0E`、`0x0F` 等控制字符不会被特殊处理。
+
+### 小车 → 云台
+
+```text
+AA 55 02 command parked checksum
+```
+
+- `02`：小车停车通知帧。
+- `command`：`01～04`，映射到90°～360°。
+- `parked`：固定为 `01`，表示小车已经停车，云台可以启动。
+- `checksum`：前5个字节相加后取低8位。
+
+| 角度 | HEX帧 |
+|---:|---|
+| 90° | `AA 55 02 01 01 03` |
+| 180° | `AA 55 02 02 01 04` |
+| 270° | `AA 55 02 03 01 05` |
+| 360° | `AA 55 02 04 01 06` |
+
+小车在第二次停车后发送10次相同帧，间隔约100ms。云台只执行第一次收到的合法停车帧，其余重复帧只用于提高通信可靠性。
+
+## 编译与烧录
+
+### 小车端
+
+1. 安装 Keil MDK 5.39或更高版本。
+2. 安装 MSPM0G3507 对应的 Texas Instruments Device Family Pack。
+3. 打开 `examples/MSP_BASE_123/keil/soft_i2c_oled.uvprojx`。
+4. 执行 `Rebuild all target files`。
+5. 使用调试器将生成的 HEX 下载到 MSPM0G3507。
+6. 将 `examples/MSP_BASE_123/k230_vision_reliable.py` 部署到 K230，并设置为上电运行。
+
+### 云台端
+
+1. 安装 Keil MDK 5和 STM32F1 Device Family Pack。
+2. 打开 `云台控制/MDK-ARM/motor_test.uvprojx`。
+3. 编译并烧录到 STM32F103C8T6。
+4. 上电前将标志板正面对准小车发车点，作为机械0°。
+5. 云台上电后保持静止，收到合法停车帧后才开始顺时针旋转。
+
+## 使用方法
+
+1. 检查灰度传感器、电机、K230、MPU6050和HC-12接线。
+2. 将小车放在圆形黑线的起点，传感器从车体左到右编号为1～8。
+3. 将云台标志板正面对准发车点，并给云台控制器上电。
+4. 给小车和K230上电，等待OLED显示合法的 `LOCKED` 角度。
+5. 第一次按下 `KEY3`，小车运行一圈并在起点附近停车。
+6. 第二次按下 `KEY3`，小车运行到保存的目标角度并停车。
+7. 小车通过HC-12发送停车通知，云台按目标角度顺时针旋转。
+
+## 独立测试
+
+### 测试K230串口
+
+使用 USB-TTL 监听 K230 TX，串口助手设置为：
+
+```text
+115200 baud
+8 data bits
+no parity
+1 stop bit
+HEX display
+```
+
+### 测试小车HC-12发送
+
+电脑端使用第二块HC-12和USB-TTL接收，串口助手设置为 `9600、8-N-1` 并开启HEX显示。当前正式代码只在第二次目标停车后发送，不会在刚上电时持续发送测试帧。
+
+### 不使用小车测试云台
+
+用 USB-TTL 直接连接云台：
+
+```text
+USB-TTL TXD → STM32 PA3
+USB-TTL GND → STM32 GND
+```
+
+云台板独立供电，不连接USB-TTL的电源线。串口助手选择 `9600、8-N-1` 和HEX发送，例如：
+
+```text
+AA 55 02 03 01 05
+```
+
+云台应顺时针旋转270°。云台每次上电只执行第一个合法命令；换角度测试前需要复位STM32，以避免把小车重复发送的帧执行多次。
+
+## 关键调参位置
+
+### 循迹参数
+
+文件：`examples/MSP_BASE_123/user_c/HUIDU.c`
+
+| 参数 | 当前值 | 作用 |
+|---|---:|---|
+| `TRACK_CURVE_BIAS` | `1.20` | 4、5号附近时维持顺时针圆弧的基础差速 |
+| `TRACK_NORMAL_TURN` | `2.70` | 2、3号或6、7号触线时的普通纠偏量 |
+| `TRACK_EMERGENCY_TURN` | `5.00` | 1号或8号触线时的紧急纠偏量 |
+| `TRACK_STEER_DIRECTION` | `-1.00` | 适配当前传感器编号和电机安装方向 |
+| `TRACK_LOST_STOP_COUNT` | `15` | 持续丢线约150ms后停车 |
+| `TRACK_CONFIRM_COUNT` | `2` | 普通纠偏连续确认约20ms，减少左右抖动 |
+
+`MOTOR_CHANNEL_TEST_ENABLE` 正常运行必须保持为 `0`。
+
+### 停车参数
+
+文件：`examples/MSP_BASE_123/user_c/mode.c`
+
+| 参数 | 当前值 | 作用 |
+|---|---:|---|
+| `basespeed` | `14` | 正常循迹基础速度 |
+| `TASK_SLOW_DOWN_ANGLE` | `30°` | 距离目标30°时开始减速 |
+| `TASK_MIN_SPEED` | `8` | 末段最低速度 |
+| `TASK_STOP_LEAD_ANGLE` | `3°` | 提前停车量，用于补偿车辆惯性 |
+
+当前代码会在目标角度前约3°关闭电机。例如180°任务约在177°触发停车。若满电测试后仍稳定偏短，可逐步减小 `TASK_STOP_LEAD_ANGLE`，建议先从 `3.0` 调到 `1.0`，不要一次跨越过大。
+
+### 云台参数
+
+文件：`云台控制/Core/Src/main.c`
+
+| 参数 | 当前值 | 作用 |
+|---|---:|---|
+| `MOTOR_FULL_STEPS_PER_REV` | `200` | 电机整步数 |
+| `MOTOR_MICROSTEPS` | `16` | 驱动器细分 |
+| `MOTOR_DIRECTION_CW` | `GPIO_PIN_RESET` | 当前实物的顺时针方向电平 |
+
+若云台实测方向相反，将 `MOTOR_DIRECTION_CW` 改为 `GPIO_PIN_SET`。若角度存在固定比例误差，优先检查驱动器细分是否与 `MOTOR_MICROSTEPS` 一致。
+
+## 常见问题
+
+### K230已经识别，但小车没有锁定角度
+
+- 检查 `K230 TX → PB3`，并确保共地。
+- 确认两端均为 `115200、8-N-1`。
+- 串口发送必须是原始HEX字节，不是字符串 `"AA 55 ..."`。
+- OLED上的 `RX` 是累计字节数，不要求随时等于6；应结合 `GOOD/BAD` 和 `LOCKED` 判断完整帧。
+- MCU锁定首次合法结果后不会随图案变化而更新，重新测试其他图案时应复位小车和K230。
+
+### HC-12无法通信
+
+- 检查 TX/RX 是否交叉以及两端是否共地。
+- 检查两个模块的波特率、信道和FU模式是否一致。
+- 小车端正式代码只有第二次停车后才发送。
+- 避免同时使用小车电源和USB-TTL电源给同一模块供电。
+
+### 云台90°能转，随后180°没有反应
+
+这是重复帧锁存逻辑，不一定是供电问题。云台收到第一个合法命令后会忽略后续命令，台架测试不同角度前需要复位STM32。
+
+### 小车停车角度略小
+
+代码默认提前3°关闭驱动，为惯性留出距离。电池电量下降后惯性减小，偏短现象可能更明显。先充满电重复测试，再调整 `TASK_STOP_LEAD_ANGLE`。
+
+### 小车转向完全相反
+
+先核对左右电机PWM通道和方向引脚，再调整 `TRACK_STEER_DIRECTION`。不要在没有确认电机映射的情况下同时修改传感器编号、PWM通道和方向系数。
+
+## 开发说明
+
+小车工程由 MSPM0 开发板示例工程二次开发而来，保留了部分原例程驱动和历史模式代码。当前比赛流程以 `Task_Control_Init()`、`Task_HandleStartButton()` 和 `Task_Update()` 为入口，调试时应优先关注这些函数以及 `HUIDU.c`、`usart1.c`。
 
